@@ -1,7 +1,6 @@
 name: Create terraform plan
 
 on:
-  workflow_dispatch:
   pull_request:
     paths:
       - 'prod/**'
@@ -13,7 +12,7 @@ env:
 
 jobs:
   plan-dev:
-    name: 'terraform plan dev'
+    name: 'terraform plan'
     runs-on: ubuntu-latest
     env:
       TF_WORKING_DIR: 'prod'
@@ -31,33 +30,31 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.0.0
-      
+
       - name: Terraform fmt
         id: fmt
-        run: terraform fmt -recursive
-      
-      - name: Terraform fmt
-        id: fmt-check
         run: terraform fmt -check
-
+        continue-on-error: true
+      
       - name: Terraform Init
         id: init
         run: terraform init
-
+      
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
-
+      
       - name: Terraform Plan
-        id: plandev
+        id: plan
         run: terraform plan -no-color
-
+        continue-on-error: true
+      
       - uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         with:
-          github-token: ${{ secrets.TOKEN_GITHUB }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
