@@ -1,6 +1,7 @@
 name: Apply terraform resources
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
